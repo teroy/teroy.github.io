@@ -1,0 +1,648 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.proxy.ustclug.org/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.0" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="php," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico?v=5.1.0" />
+
+
+
+
+
+
+<meta name="description" content="composer作为php领域最为流行的包依赖管理器，基本也成为每个phper的必备技能之一，composer官方也提供了很好的中文学习资料，整体而言也是很容易上手的。自己在使用composer的过程中也遇到了概念不清晰和实践方面的问题，所以用这篇文章来记录总结一下。 问题1：该不该将vendor文件夹包裹在源代码管理器(git、svn等)中？vendor文件夹通常都会比较大，不将其放在源代码管理">
+<meta name="keywords" content="php">
+<meta property="og:type" content="article">
+<meta property="og:title" content="composer使用实践">
+<meta property="og:url" content="http://yoursite.com/2017/03/12/composer/index.html">
+<meta property="og:site_name" content="Teroy’s Blog">
+<meta property="og:description" content="composer作为php领域最为流行的包依赖管理器，基本也成为每个phper的必备技能之一，composer官方也提供了很好的中文学习资料，整体而言也是很容易上手的。自己在使用composer的过程中也遇到了概念不清晰和实践方面的问题，所以用这篇文章来记录总结一下。 问题1：该不该将vendor文件夹包裹在源代码管理器(git、svn等)中？vendor文件夹通常都会比较大，不将其放在源代码管理">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-07-24T03:27:25.789Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="composer使用实践">
+<meta name="twitter:description" content="composer作为php领域最为流行的包依赖管理器，基本也成为每个phper的必备技能之一，composer官方也提供了很好的中文学习资料，整体而言也是很容易上手的。自己在使用composer的过程中也遇到了概念不清晰和实践方面的问题，所以用这篇文章来记录总结一下。 问题1：该不该将vendor文件夹包裹在源代码管理器(git、svn等)中？vendor文件夹通常都会比较大，不将其放在源代码管理">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: false,
+    motion: true,
+    duoshuo: {
+      userId: 'undefined',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/03/12/composer/"/>
+
+
+
+
+
+  <title> composer使用实践 | Teroy’s Blog </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+  <script type="text/javascript">
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//tajs.qq.com/stats?sId=59559514";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Teroy’s Blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle"></p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+  <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/03/12/composer/">
+
+  <span style="display:none" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <meta itemprop="name" content="Teroy">
+    <meta itemprop="description" content="">
+    <meta itemprop="image" content="/images/avatar.jpg">
+  </span>
+
+  <span style="display:none" itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+    <meta itemprop="name" content="Teroy’s Blog">
+    <span style="display:none" itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+      <img style="display:none;" itemprop="url image" alt="Teroy’s Blog" src="">
+    </span>
+  </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                composer使用实践
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              <time title="Post created" itemprop="dateCreated datePublished" datetime="2017-03-12T00:00:00+08:00">
+                2017-03-12
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+          
+
+          
+
+          
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>composer作为php领域最为流行的包依赖管理器，基本也成为每个phper的必备技能之一，composer官方也提供了很好的<a href="http://docs.phpcomposer.com/00-intro.html" target="_blank" rel="noopener">中文学习资料</a>，整体而言也是很容易上手的。自己在使用composer的过程中也遇到了概念不清晰和实践方面的问题，所以用这篇文章来记录总结一下。</p>
+<h4 id="问题1：该不该将vendor文件夹包裹在源代码管理器-git、svn等-中？"><a href="#问题1：该不该将vendor文件夹包裹在源代码管理器-git、svn等-中？" class="headerlink" title="问题1：该不该将vendor文件夹包裹在源代码管理器(git、svn等)中？"></a>问题1：该不该将vendor文件夹包裹在源代码管理器(git、svn等)中？</h4><p>vendor文件夹通常都会比较大，不将其放在源代码管理器中，可以减少仓库的体积和历史提交差异记录，加快代码签入签出的速度，所以一般不将vendor包放在仓库中。但是需要注意一些问题，因为有时候composer安装的过程中需要执行一些检验token的操作，在持续集成的工具中要预留一些解决方案。</p>
+<h4 id="问题2：composer提供了install和update命令来维护vendor包，那么这两个命令有什么区别呢？"><a href="#问题2：composer提供了install和update命令来维护vendor包，那么这两个命令有什么区别呢？" class="headerlink" title="问题2：composer提供了install和update命令来维护vendor包，那么这两个命令有什么区别呢？"></a>问题2：composer提供了install和update命令来维护vendor包，那么这两个命令有什么区别呢？</h4><p>与composer明确相关的有三个东西：composer.json文件、composer.lock文件和vendor文件夹。后两者都由composer自行管理，所以与开发者密切相关的就是composer.json文件。<br>要回答这个问题，前提就是要区分应用场景。假如一个项目之前完全没用过composer，现在刚刚创建好了composer.json文件，那么用install和update命令都可以完成同样的工作：生成包源文件集合vendor和composer.lock锁文件。两个命名之间没有本质区别。<br>假如项目已经使用了composer，现在修改了composer.json文件，想修改包的版本或者增加第三方包的引入，那么必须使用update命令，因为install命令会根据composer.lock来生成包源文件，它是不会去识别composer.json的改动的。<br>上述的场景中，用update命令就可以满足了，那么install命令应该在什么场景下使用呢？答案就是在生产环境中。我们可以在开发环境中维护好composer.lock文件，并将.lock文件提交到代码仓库中，到了生产环境就只用install命令，根据.lock文件生成vendor包，就不会造成生产环境贸然更新了某个包与开发环境不一致的问题。</p>
+<h4 id="问题3：composer的包版本号提供了多种约定方式，那么在项目中最好用哪种方式呢？"><a href="#问题3：composer的包版本号提供了多种约定方式，那么在项目中最好用哪种方式呢？" class="headerlink" title="问题3：composer的包版本号提供了多种约定方式，那么在项目中最好用哪种方式呢？"></a>问题3：composer的包版本号提供了多种约定方式，那么在项目中最好用哪种方式呢？</h4><p>composer官网明确介绍了包的约定方式：</p>
+<ul>
+<li>确切的版本号: 1.0.2</li>
+<li>范围: &gt;=1.0 大于1.0的版本</li>
+<li>通配符: 1.0.* 1.0下的子版本</li>
+<li>赋值运算符: ~1.2 相当于范围&gt;=1.2,&lt;2.0 </li>
+</ul>
+<p>我们最常用的使用场景应该是在require下面包裹一个第三方组件进来，这时候我认为最好的方式是使用明确版本号的方式。但是为什么呢？理由很简单：保持第三方包的稳定。第三方包基本都会作版本更新，使用其他的约定方式则会存在一个问题：当前匹配的版本会变更。举个例子，假如我们用通配符的方式引入了monolog包（require {“monolog/monolog”:”*”}），现在项目中用的是1.0版本，隔了一阵子，monolog发布了2.0版本，而且与1.0版本的api有了明显的不兼容，我们在项目中执行了composer update命令，则会自动将版本更新为2.0版本，组件api改变了，原来的地方有可能就会出现报错。<br>至于如何知道第三方包的版本，我们可以直接在<a href="https://packagist.org" target="_blank" rel="noopener">packagist</a>搜索得到，可以自行选择引入的版本。</p>
+<h4 id="问题4：composer执行安装命令后一直停留在等待界面？"><a href="#问题4：composer执行安装命令后一直停留在等待界面？" class="headerlink" title="问题4：composer执行安装命令后一直停留在等待界面？"></a>问题4：composer执行安装命令后一直停留在等待界面？</h4><p>这里有些小技巧可以改进这个问题。首先就是命令的后面加上-vvv，就可以打印出具体的debug信息，实时地知道现在的运行情况；很多时候等待过久是因为遇到不翻墙下不了包的问题，这时可以通过设置包的源为中国镜像，具体可以参考<a href="https://pkg.phpcomposer.com/" target="_blank" rel="noopener">这里</a>。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/php/" rel="tag"># php</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/02/26/yii-foreach-issue/" rel="next" title="yii框架遇到的数组引用循环问题">
+                <i class="fa fa-chevron-left"></i> yii框架遇到的数组引用循环问题
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/04/06/linux-dir/" rel="prev" title="linux目录文件介绍">
+                linux目录文件介绍 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/avatar.jpg"
+               alt="Teroy" />
+          <p class="site-author-name" itemprop="name">Teroy</p>
+          <p class="site-description motion-element" itemprop="description"></p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">12</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">8</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/teroy" target="_blank" title="GitHub">
+                  
+                    <i class="fa fa-fw fa-github"></i>
+                  
+                  GitHub
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://www.douban.com/people/teroy" target="_blank" title="Douban">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  Douban
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+        
+
+
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#问题1：该不该将vendor文件夹包裹在源代码管理器-git、svn等-中？"><span class="nav-number">1.</span> <span class="nav-text">问题1：该不该将vendor文件夹包裹在源代码管理器(git、svn等)中？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#问题2：composer提供了install和update命令来维护vendor包，那么这两个命令有什么区别呢？"><span class="nav-number">2.</span> <span class="nav-text">问题2：composer提供了install和update命令来维护vendor包，那么这两个命令有什么区别呢？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#问题3：composer的包版本号提供了多种约定方式，那么在项目中最好用哪种方式呢？"><span class="nav-number">3.</span> <span class="nav-text">问题3：composer的包版本号提供了多种约定方式，那么在项目中最好用哪种方式呢？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#问题4：composer执行安装命令后一直停留在等待界面？"><span class="nav-number">4.</span> <span class="nav-text">问题4：composer执行安装命令后一直停留在等待界面？</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Teroy</span>
+</div>
+
+
+<div class="powered-by">
+  由 <a class="theme-link" href="https://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.0"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.0"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.0"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.0"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.0"></script>
+
+
+
+  
+
+
+
+  
+
+
+
+
+	
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+  
+
+
+</body>
+</html>
