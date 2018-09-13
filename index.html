@@ -227,6 +227,154 @@
   
   
   <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/02/go-dep/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Teroy">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Teroy’s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/05/02/go-dep/" itemprop="url">dep使用指南</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-02T00:00:00+08:00">
+                2018-05-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/05/02/go-dep/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2018/05/02/go-dep/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <h4 id="什么是dep"><a href="#什么是dep" class="headerlink" title="什么是dep"></a>什么是dep</h4><p>dep是一款golang的包管理工具，通过将工程中相关依赖的包加载到工程目录下的vendor文件夹的形式，实现包的版本管理。</p>
+<h4 id="为什么要使用dep"><a href="#为什么要使用dep" class="headerlink" title="为什么要使用dep"></a>为什么要使用dep</h4><p>要解释这个问题，首先要解释为什么要出现vendor目录。在没有vendor目录之前，golang在查找工程中引入的第三方包的时候，会到环境上配置的$GOPATH目录下查找对应目录的包，意味着我们在使用一个包的时候，必须先用 <code>go get</code> 命名下载到$GOPATH中，但是我们知道第三方包会有版本的概念，假如A工程引用了P包的v1.0.0版本，B工程引用了P包的v2.0.0版本，但是每个$GOPATH下面对应的P包只能存放一份，所以每次需要编译不同的AB不同的工程的时候，需要到$GOPATH手工切换第三方包的版本，整个流程就会变得很繁琐。</p>
+<p>为了解决这个问题，golang在go1.5版本引入了vendor目录的概念，golang在查找工程中引入的第三方包的时候会优先到当前工程中的vendor目录中查找包，我们只需要将需要用到的包按目录规则存放即可，这样包的版本问题就迎刃而解了。</p>
+<p>而dep就是用来做vendor包管理的工具，提供了初始化vendor包和更新vendor包的命令，以及对vendor中的第三方包的约束配置，能帮助开发者更好地管理工程中的包依赖。</p>
+<h4 id="如何安装dep"><a href="#如何安装dep" class="headerlink" title="如何安装dep"></a>如何安装dep</h4><p><a href="https://golang.github.io/dep/docs/installation.html" target="_blank" rel="noopener">官方文档</a> 提供了详细的安装指南，这里也提供一种我个人比较推荐的做法：<br>首先先将$GOPATH/bin目录加入到机器的$PATH中，然后使用 <code>go get</code> 命令下载dep包即可，命令执行如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go get -v github.com/golang/dep/cmd/dep</span><br></pre></td></tr></table></figure></p>
+<h4 id="如何使用dep在工程中初始化依赖"><a href="#如何使用dep在工程中初始化依赖" class="headerlink" title="如何使用dep在工程中初始化依赖"></a>如何使用dep在工程中初始化依赖</h4><p>安装上一步安装好dep后，即可开始使用dep命令了。对于一个之前没引入vendor包的项目来说，需要执行一下的命名做初始化：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// -v表示详细打印整个初始化过程，由于很多golang相关的包都需要翻墙下载，网络会存在</span><br><span class="line">// 不稳定的情况，所以最好是带上这个指令打印详细输出信息</span><br><span class="line">dep init -v</span><br></pre></td></tr></table></figure></p>
+<p>执行命令成功后，我们会看到工程目录下除了多了vendor目录外，还会生成两个文件：Gopkg.toml和Gopkg.lock，Gopkg.toml文件是用来做包的约束说明（例如指定某个依赖包的版本），Gopkg.lock文件则是描述了当前vendor目录下所有包的版本信息。</p>
+<h4 id="关于Gopkg-toml的配置说明"><a href="#关于Gopkg-toml的配置说明" class="headerlink" title="关于Gopkg.toml的配置说明"></a>关于Gopkg.toml的配置说明</h4><p>Gopkg.toml提供了丰富的包约束规则配置，具体介绍如下：<br>(1) require/ignored 配置<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// 示例</span><br><span class="line">require = [&quot;github.com/garyburd/redigo&quot;, &quot;github.com/bradfitz/gomemcache&quot;]</span><br><span class="line">ignored = [&quot;github.com/go-ini/ini&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>当包路径出现在require节点中，则表示不管当前工程中有没有用到这个包都将这个包加入到vendor中，这个特性在有些场景下很会用，比如做一些开发脚手架的时候，某些包在外来有极大可能会被引用，则先把它们加入到require节点中，避免未来用到的时候再执行一次包引入；</p>
+<p>出现在ignored中的包路径，则表示不管当前工程有没有用到这个包都将不把这个包加入到vendor中，这个特性的用途主要在当出现间接引用的时候，比如A-&gt;B-&gt;C，如果确定C在当前的工程中没被执行到，则可以考虑将C不加入到vendor包，减少编译生成的文件大小（不过这个做法其实并不常见，建议谨慎使用）。</p>
+<p>(2) prune 配置<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// 示例</span><br><span class="line">[prune]</span><br><span class="line">  go-tests = true</span><br><span class="line">  unused-packages = true</span><br></pre></td></tr></table></figure></p>
+<p>prune的中文意思是精简的意思，默认生成的Gopkg.toml文件通常会带上示例的配置，<code>go-tests = true</code> 表示vendor目录将不包含包中_test结尾的go文件，<code>unused-packages = true</code> 表示没有被用到的包将不包含在vendor目录中（例如有外部包结构如下：github.com/teroy/stark/a和github.com/teroy/stark/b，假如工程中只引入了a包，则b包不会出现在vendor目录中）。</p>
+<p>注意如果要改变精简条件，无需将false赋值给对应项的配置，而是直接将对应项的配置在配置文件中移除。</p>
+<p>(3) constraint 配置<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// 示例</span><br><span class="line">[[constraint]]</span><br><span class="line">  name = &quot;github.com/teroy/common&quot;</span><br><span class="line">  branch = &quot;master&quot;</span><br><span class="line">  source = &quot;git@github.com:teroy/common.git&quot;</span><br></pre></td></tr></table></figure></p>
+<p>constraint用来配置当前工程的直接依赖包约束。constraint提供了较多的配置项，具体罗列如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[[constraint]]</span><br><span class="line">  // 包名（节必须配置）</span><br><span class="line">  name = &quot;github.com/teroy/common&quot;</span><br><span class="line">  // branch、version和revision 只允许配置一个（必须配置）</span><br><span class="line">  branch = &quot;master&quot; // 表示当前包的获取分支</span><br><span class="line">  version = &quot;1.0.0&quot; // 表示获取包的版本，&quot;1.0.0&quot;表示获取范围为&gt;=&quot;1.0.0&quot;, &lt;&quot;2.0.0&quot;，参考:(https://golang.github.io/dep/docs/Gopkg.toml.html#version)</span><br><span class="line">  revision = &quot;12766cc1f36d22b11887b42740d06ff966534e0a&quot; // 表示指定具体的git的commit SHA1 通常情况下不使用，只有在确定version没有适合的版本的情况下使用</span><br><span class="line">  // 源地址（可选配置）</span><br><span class="line">  source = &quot;git@github.com:teroy/common.git&quot; // 默认使用http的形式，也可以配置ssh的形式</span><br></pre></td></tr></table></figure></p>
+<p>(4) ovverride 配置<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// 示例</span><br><span class="line">[[override]]</span><br><span class="line">  name = &quot;github.com/teroy/common&quot;</span><br><span class="line">  branch = &quot;master&quot;</span><br><span class="line">  source = &quot;git@github.com:teroy/common.git&quot;</span><br></pre></td></tr></table></figure></p>
+<p>override与constraint相同的配置约束，唯一不同的是override使用来配置当前工程的间接依赖包约束。</p>
+<h4 id="dep-ensure-命令说明"><a href="#dep-ensure-命令说明" class="headerlink" title="dep ensure 命令说明"></a>dep ensure 命令说明</h4><p><code>dep ensure -v</code> 执行的过程中，会做以下两个检查：检查当前工程所需要的包是否和.lock文件中指定的包一致以及检查.toml文件中的约束条件是否和.lock文件中指定的包一致。假如出现了不一致的情况，则dep会执行工程的所有依赖包的重新加载，所以这个命令适合于工程中引入了新的包（不存在于.lock文件中配置的包）的时候执行，或者修改了.toml配置的时候执行。注意只要.lock文件指定的包的版本是在.toml约束范围内，不管.toml文件如何变动，执行这条命令都不会更新包到约束范围内的最新版本。</p>
+<p>那如果我们要更新某个包到约束范围内的最新版本要怎么做呢？答案就是执行 <code>dep ensure -v -update 具体的包</code>，当然也可以直接执行 <code>dep ensure -v -update</code> 更新所有的包，但通常这会比较费时，一般也不推荐这种方式。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
     <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/03/php-ZipArchive-extension-issue/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1436,142 +1584,6 @@
 
 
     
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/04/02/stack/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Teroy">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Teroy’s Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2015/04/02/stack/" itemprop="url">.NET源码Stack<T>的实现</a></h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-04-02T00:00:00+08:00">
-                2015-04-02
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2015/04/02/stack/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2015/04/02/stack/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Stack（栈）是一种后进先出的数据结构，其中最核心的两个方法分别为Push（入栈）和Pop（出栈）两个操作，那么.NET类库是如何实现这种数据结构呢？为了降低学习成本，这里将根据.NET源码的实现，结合其中的核心设计思想，得出一个简化版本的实现：</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br></pre></td><td class="code"><pre><span class="line">using System;</span><br><span class="line"></span><br><span class="line">namespace OriginalCode</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">    <span class="comment">/// 基于.NET源码的简化版实现</span></span><br><span class="line">    <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Stack</span>&lt;<span class="title">T</span>&gt;</span></span><br><span class="line"><span class="class">    </span>&#123;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">const</span> <span class="keyword">int</span> _defaultCapacity = <span class="number">4</span>;</span><br><span class="line">        <span class="keyword">private</span> T[] _array;</span><br><span class="line">        <span class="keyword">private</span> <span class="keyword">int</span> _size;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="title">Stack</span><span class="params">()</span></span></span><br><span class="line"><span class="function">        </span>&#123;</span><br><span class="line">            <span class="comment">//默认初始化数组的数量为空</span></span><br><span class="line">            _array = <span class="keyword">new</span> T[<span class="number">0</span>];</span><br><span class="line">            <span class="comment">//初始化数组的数量为0</span></span><br><span class="line">            _size = <span class="number">0</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">        <span class="comment">/// 入栈</span></span><br><span class="line">        <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">        <span class="comment">/// &lt;param name="item"&gt;入栈的元素&lt;/param&gt;</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">Push</span><span class="params">(T item)</span></span></span><br><span class="line"><span class="function">        </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (_size == _array.Length)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="comment">//数组存储已经满了，需重新分配数组大小</span></span><br><span class="line">                <span class="comment">//分配的数组大小为原来的两倍</span></span><br><span class="line">                T[] array = <span class="keyword">new</span> T[_array.Length == <span class="number">0</span> ? _defaultCapacity : <span class="number">2</span> * _array.Length];</span><br><span class="line"></span><br><span class="line">                <span class="comment">//将原来的数组Copy到新数组中</span></span><br><span class="line">                Copy(_array, array);</span><br><span class="line"></span><br><span class="line">                <span class="comment">//_array指向新数组</span></span><br><span class="line">                _array = array;</span><br><span class="line">            &#125;</span><br><span class="line">            _array[_size] = item;</span><br><span class="line">            _size += <span class="number">1</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">        <span class="comment">/// 出栈</span></span><br><span class="line">        <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">        <span class="comment">/// &lt;returns&gt;出栈的元素&lt;/returns&gt;</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> T <span class="title">Pop</span><span class="params">()</span></span></span><br><span class="line"><span class="function">        </span>&#123;</span><br><span class="line">            <span class="keyword">if</span> (_size == <span class="number">0</span>)</span><br><span class="line">            &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> Exception(<span class="string">"栈为空，当前不能执行出栈操作"</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            _size -= <span class="number">1</span>;</span><br><span class="line">            T result = _array[_size];</span><br><span class="line">            _array[_size] = <span class="keyword">default</span>(T);</span><br><span class="line">            <span class="keyword">return</span> result;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">/// &lt;summary&gt;</span></span><br><span class="line">        <span class="comment">/// 将旧数组赋值到新数组(这个方法是一个模拟实现，实际情况.NET源码底层用C++实现了更高效的复制)</span></span><br><span class="line">        <span class="comment">/// &lt;/summary&gt;</span></span><br><span class="line">        <span class="comment">/// &lt;param name="oldArray"&gt;旧数组&lt;/param&gt;</span></span><br><span class="line">        <span class="comment">/// &lt;param name="newArray"&gt;新数组&lt;/param&gt;</span></span><br><span class="line">        <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">Copy</span><span class="params">(T[] oldArray, T[] newArray)</span></span></span><br><span class="line"><span class="function">        </span>&#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; oldArray.Length; i++)</span><br><span class="line">            &#123;</span><br><span class="line">                newArray[i] = oldArray[i];</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>必须明确的一点是Stack<t>的底层是靠T[] _array数组对象维系着。首先来看构造函数Stack()，这里做的事情无非就是一些基本的初始化工作，当调用这个无参构造函数的时候，会将_array数组实例化为T[0]，同时将一个_size初始化为0。这个_size主要是用来表示当前栈中存在的元素个数，同时也承担起类似数组下标的作用，标识下一个元素入栈的数组位置。</t></p>
-<p>接下来来看一下Push(T item)函数的实现。这里的第一步操作其实就是执行一次判断，判断当前_array数组的元素个数是否已经满了，假如满了的话，就要对数组进行扩充。.NET源码对于数组扩充的设计还是比较巧妙的，当_array为空的时候，默认开始分配的数组个数为4，既new T[4]，假如要插入的是第5个元素的时候，这时数组的个数不足，就声明一个新的T[] array，并将个数扩充为_array个数的2倍，之后再将_array元素一个个复制到新的array中，最后将_array字段指向array，就完成了数组扩充的工作。这一步在前面的代码中的实现应该是很清晰的，不过需要注意的一点是这里的Copy(_array,array)函数是我自己的一个简单的实现，跟.NET源码中的实现是很不一样的，.NET源码是调用一个Array.Copy(this._array, 0, array, 0, this._size)的函数，它的底层应该是用C++实现了数组复制的更好的优化。通过一张图来看一下数组扩容的过程：</p>
-<p><img src="/2015/04/02/stack/1.png" alt=""></p>
-<p>最后来看一下Pop()函数的实现。首先先判断当前数组的个数是否大于0，小于等于0的话就会抛出异常。之后就将_size-=1，得到要Pop的对象在数组的位置。取出_array[_size]后，就调用default(T)填充_array[_size]的位置，这样做的一个好处是取消对原来的对象的引用，是其能够成为垃圾回收的对象，更好地减少内存的占用。总体而言Pop()实现还是比较简单的。</p>
-<p>从前面我们知道，使用Stack<t>数据结构，数组扩容应该是影响性能最大的一个因素。默认情况下，假如要往栈中插入100个对象，意味着数组就要经过4-&gt;8-&gt;16-&gt;32-&gt;64-&gt;128总共5次的数组扩容，那么有没有什么办法可以改善性能呢？答案是有的，.NET源码Stack<t>对象除了提供默认的无参构造函数外，还提供了一个Stack(int capacity)的构造函数，capacity参数其实就是用表示来初始化数组的个数，假如我们能预料到这次插入栈的对象个数的最大值的话（以100为例），就直接这样调用new Stack<t>(100)，这样就能减少不必要的数组扩容，从而提高了Stack的使用性能。</t></t></t></p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
   </section>
 
   
@@ -1626,7 +1638,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">12</span>
+                  <span class="site-state-item-count">13</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1639,7 +1651,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">7</span>
+                  <span class="site-state-item-count">8</span>
                   <span class="site-state-item-name">标签</span>
                 
               </div>

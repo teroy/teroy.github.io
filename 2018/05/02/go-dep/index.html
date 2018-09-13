@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="golang," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="什么是depdep是一款golang的包管理工具，通过将工程中相关依赖的包加载到工程目录下的vendor文件夹的形式，实现包的版本管理。 为什么要使用dep要解释这个问题，首先要解释为什么要出现vendor目录。在没有vendor目录之前，golang在查找工程中引入的第三方包的时候，会到环境上配置的$GOPATH目录下查找对应目录的包，意味着我们在使用一个包的时候，必须先用 go get 命名下">
+<meta name="keywords" content="golang">
+<meta property="og:type" content="article">
+<meta property="og:title" content="dep使用指南">
+<meta property="og:url" content="http://yoursite.com/2018/05/02/go-dep/index.html">
+<meta property="og:site_name" content="Teroy’s Blog">
+<meta property="og:description" content="什么是depdep是一款golang的包管理工具，通过将工程中相关依赖的包加载到工程目录下的vendor文件夹的形式，实现包的版本管理。 为什么要使用dep要解释这个问题，首先要解释为什么要出现vendor目录。在没有vendor目录之前，golang在查找工程中引入的第三方包的时候，会到环境上配置的$GOPATH目录下查找对应目录的包，意味着我们在使用一个包的时候，必须先用 go get 命名下">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-09-13T13:01:33.248Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="dep使用指南">
+<meta name="twitter:description" content="什么是depdep是一款golang的包管理工具，通过将工程中相关依赖的包加载到工程目录下的vendor文件夹的形式，实现包的版本管理。 为什么要使用dep要解释这个问题，首先要解释为什么要出现vendor目录。在没有vendor目录之前，golang在查找工程中引入的第三方包的时候，会到环境上配置的$GOPATH目录下查找对应目录的包，意味着我们在使用一个包的时候，必须先用 go get 命名下">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"right","display":"always","offset":6,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/05/02/go-dep/"/>
+
+
+
+
+
+  <title>dep使用指南 | Teroy’s Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Teroy’s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description"></h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/02/go-dep/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Teroy">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Teroy’s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">dep使用指南</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-02T00:00:00+08:00">
+                2018-05-02
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/05/02/go-dep/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2018/05/02/go-dep/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h4 id="什么是dep"><a href="#什么是dep" class="headerlink" title="什么是dep"></a>什么是dep</h4><p>dep是一款golang的包管理工具，通过将工程中相关依赖的包加载到工程目录下的vendor文件夹的形式，实现包的版本管理。</p>
+<h4 id="为什么要使用dep"><a href="#为什么要使用dep" class="headerlink" title="为什么要使用dep"></a>为什么要使用dep</h4><p>要解释这个问题，首先要解释为什么要出现vendor目录。在没有vendor目录之前，golang在查找工程中引入的第三方包的时候，会到环境上配置的$GOPATH目录下查找对应目录的包，意味着我们在使用一个包的时候，必须先用 <code>go get</code> 命名下载到$GOPATH中，但是我们知道第三方包会有版本的概念，假如A工程引用了P包的v1.0.0版本，B工程引用了P包的v2.0.0版本，但是每个$GOPATH下面对应的P包只能存放一份，所以每次需要编译不同的AB不同的工程的时候，需要到$GOPATH手工切换第三方包的版本，整个流程就会变得很繁琐。</p>
+<p>为了解决这个问题，golang在go1.5版本引入了vendor目录的概念，golang在查找工程中引入的第三方包的时候会优先到当前工程中的vendor目录中查找包，我们只需要将需要用到的包按目录规则存放即可，这样包的版本问题就迎刃而解了。</p>
+<p>而dep就是用来做vendor包管理的工具，提供了初始化vendor包和更新vendor包的命令，以及对vendor中的第三方包的约束配置，能帮助开发者更好地管理工程中的包依赖。</p>
+<h4 id="如何安装dep"><a href="#如何安装dep" class="headerlink" title="如何安装dep"></a>如何安装dep</h4><p><a href="https://golang.github.io/dep/docs/installation.html" target="_blank" rel="noopener">官方文档</a> 提供了详细的安装指南，这里也提供一种我个人比较推荐的做法：<br>首先先将$GOPATH/bin目录加入到机器的$PATH中，然后使用 <code>go get</code> 命令下载dep包即可，命令执行如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">go get -v github.com/golang/dep/cmd/dep</span><br></pre></td></tr></table></figure></p>
+<h4 id="如何使用dep在工程中初始化依赖"><a href="#如何使用dep在工程中初始化依赖" class="headerlink" title="如何使用dep在工程中初始化依赖"></a>如何使用dep在工程中初始化依赖</h4><p>安装上一步安装好dep后，即可开始使用dep命令了。对于一个之前没引入vendor包的项目来说，需要执行一下的命名做初始化：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// -v表示详细打印整个初始化过程，由于很多golang相关的包都需要翻墙下载，网络会存在</span><br><span class="line">// 不稳定的情况，所以最好是带上这个指令打印详细输出信息</span><br><span class="line">dep init -v</span><br></pre></td></tr></table></figure></p>
+<p>执行命令成功后，我们会看到工程目录下除了多了vendor目录外，还会生成两个文件：Gopkg.toml和Gopkg.lock，Gopkg.toml文件是用来做包的约束说明（例如指定某个依赖包的版本），Gopkg.lock文件则是描述了当前vendor目录下所有包的版本信息。</p>
+<h4 id="关于Gopkg-toml的配置说明"><a href="#关于Gopkg-toml的配置说明" class="headerlink" title="关于Gopkg.toml的配置说明"></a>关于Gopkg.toml的配置说明</h4><p>Gopkg.toml提供了丰富的包约束规则配置，具体介绍如下：<br>(1) require/ignored 配置<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// 示例</span><br><span class="line">require = [&quot;github.com/garyburd/redigo&quot;, &quot;github.com/bradfitz/gomemcache&quot;]</span><br><span class="line">ignored = [&quot;github.com/go-ini/ini&quot;]</span><br></pre></td></tr></table></figure></p>
+<p>当包路径出现在require节点中，则表示不管当前工程中有没有用到这个包都将这个包加入到vendor中，这个特性在有些场景下很会用，比如做一些开发脚手架的时候，某些包在外来有极大可能会被引用，则先把它们加入到require节点中，避免未来用到的时候再执行一次包引入；</p>
+<p>出现在ignored中的包路径，则表示不管当前工程有没有用到这个包都将不把这个包加入到vendor中，这个特性的用途主要在当出现间接引用的时候，比如A-&gt;B-&gt;C，如果确定C在当前的工程中没被执行到，则可以考虑将C不加入到vendor包，减少编译生成的文件大小（不过这个做法其实并不常见，建议谨慎使用）。</p>
+<p>(2) prune 配置<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">// 示例</span><br><span class="line">[prune]</span><br><span class="line">  go-tests = true</span><br><span class="line">  unused-packages = true</span><br></pre></td></tr></table></figure></p>
+<p>prune的中文意思是精简的意思，默认生成的Gopkg.toml文件通常会带上示例的配置，<code>go-tests = true</code> 表示vendor目录将不包含包中_test结尾的go文件，<code>unused-packages = true</code> 表示没有被用到的包将不包含在vendor目录中（例如有外部包结构如下：github.com/teroy/stark/a和github.com/teroy/stark/b，假如工程中只引入了a包，则b包不会出现在vendor目录中）。</p>
+<p>注意如果要改变精简条件，无需将false赋值给对应项的配置，而是直接将对应项的配置在配置文件中移除。</p>
+<p>(3) constraint 配置<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// 示例</span><br><span class="line">[[constraint]]</span><br><span class="line">  name = &quot;github.com/teroy/common&quot;</span><br><span class="line">  branch = &quot;master&quot;</span><br><span class="line">  source = &quot;git@github.com:teroy/common.git&quot;</span><br></pre></td></tr></table></figure></p>
+<p>constraint用来配置当前工程的直接依赖包约束。constraint提供了较多的配置项，具体罗列如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[[constraint]]</span><br><span class="line">  // 包名（节必须配置）</span><br><span class="line">  name = &quot;github.com/teroy/common&quot;</span><br><span class="line">  // branch、version和revision 只允许配置一个（必须配置）</span><br><span class="line">  branch = &quot;master&quot; // 表示当前包的获取分支</span><br><span class="line">  version = &quot;1.0.0&quot; // 表示获取包的版本，&quot;1.0.0&quot;表示获取范围为&gt;=&quot;1.0.0&quot;, &lt;&quot;2.0.0&quot;，参考:(https://golang.github.io/dep/docs/Gopkg.toml.html#version)</span><br><span class="line">  revision = &quot;12766cc1f36d22b11887b42740d06ff966534e0a&quot; // 表示指定具体的git的commit SHA1 通常情况下不使用，只有在确定version没有适合的版本的情况下使用</span><br><span class="line">  // 源地址（可选配置）</span><br><span class="line">  source = &quot;git@github.com:teroy/common.git&quot; // 默认使用http的形式，也可以配置ssh的形式</span><br></pre></td></tr></table></figure></p>
+<p>(4) ovverride 配置<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// 示例</span><br><span class="line">[[override]]</span><br><span class="line">  name = &quot;github.com/teroy/common&quot;</span><br><span class="line">  branch = &quot;master&quot;</span><br><span class="line">  source = &quot;git@github.com:teroy/common.git&quot;</span><br></pre></td></tr></table></figure></p>
+<p>override与constraint相同的配置约束，唯一不同的是override使用来配置当前工程的间接依赖包约束。</p>
+<h4 id="dep-ensure-命令说明"><a href="#dep-ensure-命令说明" class="headerlink" title="dep ensure 命令说明"></a>dep ensure 命令说明</h4><p><code>dep ensure -v</code> 执行的过程中，会做以下两个检查：检查当前工程所需要的包是否和.lock文件中指定的包一致以及检查.toml文件中的约束条件是否和.lock文件中指定的包一致。假如出现了不一致的情况，则dep会执行工程的所有依赖包的重新加载，所以这个命令适合于工程中引入了新的包（不存在于.lock文件中配置的包）的时候执行，或者修改了.toml配置的时候执行。注意只要.lock文件指定的包的版本是在.toml约束范围内，不管.toml文件如何变动，执行这条命令都不会更新包到约束范围内的最新版本。</p>
+<p>那如果我们要更新某个包到约束范围内的最新版本要怎么做呢？答案就是执行 <code>dep ensure -v -update 具体的包</code>，当然也可以直接执行 <code>dep ensure -v -update</code> 更新所有的包，但通常这会比较费时，一般也不推荐这种方式。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/golang/" rel="tag"># golang</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/03/php-ZipArchive-extension-issue/" rel="next" title="ZipArchive扩展遇到的问题">
+                <i class="fa fa-chevron-left"></i> ZipArchive扩展遇到的问题
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="Teroy" />
+            
+              <p class="site-author-name" itemprop="name">Teroy</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">13</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">8</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/teroy" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sher-lock@qq.com" target="_blank" title="邮箱">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>邮箱</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#什么是dep"><span class="nav-number">1.</span> <span class="nav-text">什么是dep</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#为什么要使用dep"><span class="nav-number">2.</span> <span class="nav-text">为什么要使用dep</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何安装dep"><span class="nav-number">3.</span> <span class="nav-text">如何安装dep</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#如何使用dep在工程中初始化依赖"><span class="nav-number">4.</span> <span class="nav-text">如何使用dep在工程中初始化依赖</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#关于Gopkg-toml的配置说明"><span class="nav-number">5.</span> <span class="nav-text">关于Gopkg.toml的配置说明</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#dep-ensure-命令说明"><span class="nav-number">6.</span> <span class="nav-text">dep ensure 命令说明</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Teroy</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: true,
+        appId: 'F0GpH8LSNcKesMWFoqMhWGEG-gzGzoHsz',
+        appKey: 'vfXXrc5hslHRDzfgmyGoB8bC',
+        placeholder: 'Leave your comment here~~',
+        avatar:'mm',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
