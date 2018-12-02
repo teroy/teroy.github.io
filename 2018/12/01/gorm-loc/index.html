@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="golang orm," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="近期有同事反馈，测试环境的数据库存储的datetime与北京时间有差异，看到这个问题我的第一反应可能是时区配置有问题。首先检查了一下mysql服务器的时区配置，配置的确实是北京时间，所以就排除了mysql服务器的问题，接下来再检查了一下业务服务器的时区配置，发现配置的UTC时间，由此可以初步确定是业务服务器的问题。通常遇到这个问题最快的解决方案是将服务器的时区改为北京时间，然而仔细思考一番，假如真">
+<meta name="keywords" content="golang orm">
+<meta property="og:type" content="article">
+<meta property="og:title" content="GORM时区配置">
+<meta property="og:url" content="http://yoursite.com/2018/12/01/gorm-loc/index.html">
+<meta property="og:site_name" content="Teroy’s Blog">
+<meta property="og:description" content="近期有同事反馈，测试环境的数据库存储的datetime与北京时间有差异，看到这个问题我的第一反应可能是时区配置有问题。首先检查了一下mysql服务器的时区配置，配置的确实是北京时间，所以就排除了mysql服务器的问题，接下来再检查了一下业务服务器的时区配置，发现配置的UTC时间，由此可以初步确定是业务服务器的问题。通常遇到这个问题最快的解决方案是将服务器的时区改为北京时间，然而仔细思考一番，假如真">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-12-02T14:05:13.659Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="GORM时区配置">
+<meta name="twitter:description" content="近期有同事反馈，测试环境的数据库存储的datetime与北京时间有差异，看到这个问题我的第一反应可能是时区配置有问题。首先检查了一下mysql服务器的时区配置，配置的确实是北京时间，所以就排除了mysql服务器的问题，接下来再检查了一下业务服务器的时区配置，发现配置的UTC时间，由此可以初步确定是业务服务器的问题。通常遇到这个问题最快的解决方案是将服务器的时区改为北京时间，然而仔细思考一番，假如真">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"right","display":"always","offset":6,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/12/01/gorm-loc/"/>
+
+
+
+
+
+  <title>GORM时区配置 | Teroy’s Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Teroy’s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description"></h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/01/gorm-loc/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Teroy">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Teroy’s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">GORM时区配置</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-01T00:00:00+00:00">
+                2018-12-01
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/12/01/gorm-loc/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2018/12/01/gorm-loc/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>近期有同事反馈，测试环境的数据库存储的datetime与北京时间有差异，看到这个问题我的第一反应可能是时区配置有问题。首先检查了一下mysql服务器的时区配置，配置的确实是北京时间，所以就排除了mysql服务器的问题，接下来再检查了一下业务服务器的时区配置，发现配置的UTC时间，由此可以初步确定是业务服务器的问题。通常遇到这个问题最快的解决方案是将服务器的时区改为北京时间，然而仔细思考一番，假如真的有服务器时区配置不一致的问题，难道就只能通过事后发现的修复方案，没有预防方案?<br>我们使用golang作为后端语言，数据库操作层面使用了gorm框架，查阅了gorm相关技术文档，发现gorm是支持时区配置的，那么这个gorm时区配置是否真的可以作为一个预防方案？实践出真知，接下来将通过一些样例代码来验证这个问题。</p>
+<h4 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h4><p>(1) 将本地环境的时区调为UTC<br>(2) 使用mysql数据库，建立一张测试表<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE test(</span><br><span class="line">    d datetime NOT NULL</span><br><span class="line">);</span><br></pre></td></tr></table></figure></p>
+<h4 id="样例代码-入库时间使用本地时区"><a href="#样例代码-入库时间使用本地时区" class="headerlink" title="样例代码:入库时间使用本地时区"></a>样例代码:入库时间使用本地时区</h4><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">conStr := <span class="string">"root:123456@tcp(192.168.3.93:33061)/zxd?charset=utf8mb4&amp;parseTime=true&amp;loc=Local"</span></span><br><span class="line">db, err := gorm.Open(<span class="string">"mysql"</span>, conStr)</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatalf(<span class="string">"%v"</span>, err)</span><br><span class="line">&#125;</span><br><span class="line">db.LogMode(<span class="literal">true</span>)</span><br><span class="line">db = db.Exec(<span class="string">"INSERT INTO test (d) VALUES (?)"</span>, time.Now())</span><br><span class="line"><span class="keyword">if</span> db.Error != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatalf(<span class="string">"%v"</span>, db.Error)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>gorm配置的时区为使用本地时区，通过查询数据库表可以观察得到，生成的时间为本地当前时间。</p>
+<h4 id="样例代码-使用配置时区"><a href="#样例代码-使用配置时区" class="headerlink" title="样例代码:使用配置时区"></a>样例代码:使用配置时区</h4><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">conStr := <span class="string">"root:123456@tcp(192.168.3.93:33061)/zxd?charset=utf8mb4&amp;parseTime=true&amp;loc=Asia%2fShanghai"</span></span><br><span class="line">db, err := gorm.Open(<span class="string">"mysql"</span>, conStr)</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatalf(<span class="string">"%v"</span>, err)</span><br><span class="line">&#125;</span><br><span class="line">db.LogMode(<span class="literal">true</span>)</span><br><span class="line">db = db.Exec(<span class="string">"INSERT INTO test (d) VALUES (?)"</span>, time.Now())</span><br><span class="line"><span class="keyword">if</span> db.Error != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatalf(<span class="string">"%v"</span>, db.Error)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意 <code>loc=Asia%2fShanghai</code>，gorm配置链接字符串要求对Loc做UrlEncode处理，这里配置成固定的北京时间，通过查询数据库可以验证入库的时间正确性。<br>翻看gorm的源码，可以看到，拼接sql的时候，gorm使用配置的时区对time.Time类型的变量做了一次转换，代码如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> time.Time:</span><br><span class="line">    paramTypes[i+i] = <span class="keyword">byte</span>(fieldTypeString)</span><br><span class="line">    paramTypes[i+i+<span class="number">1</span>] = <span class="number">0x00</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> a [<span class="number">64</span>]<span class="keyword">byte</span></span><br><span class="line">    <span class="keyword">var</span> b = a[:<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> v.IsZero() &#123;</span><br><span class="line">        b = <span class="built_in">append</span>(b, <span class="string">"0000-00-00"</span>...)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        b = v.In(mc.cfg.Loc).AppendFormat(b, timeFormat)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    paramValues = appendLengthEncodedInteger(paramValues,</span><br><span class="line">        <span class="keyword">uint64</span>(<span class="built_in">len</span>(b)),</span><br><span class="line">    )</span><br><span class="line">    paramValues = <span class="built_in">append</span>(paramValues, b...)</span><br></pre></td></tr></table></figure></p>
+<p>这里需要注意一个细节，就是配置的时区只对time.Time类型有效，假如我们使用了time.Now().Format()进行格式化当前时间，则会使用本地时间，因为作为一个sting占位符，gorm并不会做任何处理。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/golang-orm/" rel="tag"># golang orm</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/07/27/go-code-review-comment/" rel="next" title="golang代码实践指南">
+                <i class="fa fa-chevron-left"></i> golang代码实践指南
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="Teroy" />
+            
+              <p class="site-author-name" itemprop="name">Teroy</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/teroy" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sher-lock@qq.com" target="_blank" title="邮箱">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>邮箱</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#准备"><span class="nav-number">1.</span> <span class="nav-text">准备</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#样例代码-入库时间使用本地时区"><span class="nav-number">2.</span> <span class="nav-text">样例代码:入库时间使用本地时区</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#样例代码-使用配置时区"><span class="nav-number">3.</span> <span class="nav-text">样例代码:使用配置时区</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Teroy</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: true,
+        appId: 'F0GpH8LSNcKesMWFoqMhWGEG-gzGzoHsz',
+        appKey: 'vfXXrc5hslHRDzfgmyGoB8bC',
+        placeholder: 'Leave your comment here~~',
+        avatar:'mm',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

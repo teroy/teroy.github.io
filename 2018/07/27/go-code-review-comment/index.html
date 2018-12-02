@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion" lang="zh-Hans">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.1.4" rel="stylesheet" type="text/css" />
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=5.1.4">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=5.1.4">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=5.1.4" color="#222">
+
+
+
+
+
+  <meta name="keywords" content="golang," />
+
+
+
+
+
+
+
+
+
+
+<meta name="description" content="本篇文章是基于链接的精简翻译，作为Effective Go的补充，主要罗列了一系列golang语言的编程实践规范，对于开发者而言具有很好的参考价值。 Gofmtgofmt是一款golang的代码格式化组件，推荐在保存代码前运行gofmt来自动格式化代码，这样子能让团队项目有近乎一致的代码风格，从而提高代码的可读性。 Comment Sentences文档注释代码必须是一条完整的语句，以句号结尾，以">
+<meta name="keywords" content="golang">
+<meta property="og:type" content="article">
+<meta property="og:title" content="golang代码实践指南">
+<meta property="og:url" content="http://yoursite.com/2018/07/27/go-code-review-comment/index.html">
+<meta property="og:site_name" content="Teroy’s Blog">
+<meta property="og:description" content="本篇文章是基于链接的精简翻译，作为Effective Go的补充，主要罗列了一系列golang语言的编程实践规范，对于开发者而言具有很好的参考价值。 Gofmtgofmt是一款golang的代码格式化组件，推荐在保存代码前运行gofmt来自动格式化代码，这样子能让团队项目有近乎一致的代码风格，从而提高代码的可读性。 Comment Sentences文档注释代码必须是一条完整的语句，以句号结尾，以">
+<meta property="og:locale" content="zh-Hans">
+<meta property="og:updated_time" content="2018-09-26T09:47:37.441Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="golang代码实践指南">
+<meta name="twitter:description" content="本篇文章是基于链接的精简翻译，作为Effective Go的补充，主要罗列了一系列golang语言的编程实践规范，对于开发者而言具有很好的参考价值。 Gofmtgofmt是一款golang的代码格式化组件，推荐在保存代码前运行gofmt来自动格式化代码，这样子能让团队项目有近乎一致的代码风格，从而提高代码的可读性。 Comment Sentences文档注释代码必须是一条完整的语句，以句号结尾，以">
+
+
+
+<script type="text/javascript" id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Mist',
+    version: '5.1.4',
+    sidebar: {"position":"right","display":"always","offset":6,"b2t":false,"scrollpercent":false,"onmobile":false},
+    fancybox: true,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    duoshuo: {
+      userId: '0',
+      author: '博主'
+    },
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/07/27/go-code-review-comment/"/>
+
+
+
+
+
+  <title>golang代码实践指南 | Teroy’s Blog</title>
+  
+
+
+
+
+
+
+
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+  
+    
+  
+
+  <div class="container sidebar-position-right page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta ">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/"  class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">Teroy’s Blog</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+      
+        <h1 class="site-subtitle" itemprop="description"></h1>
+      
+  </div>
+
+  <div class="site-nav-toggle">
+    <button>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/27/go-code-review-comment/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Teroy">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Teroy’s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">golang代码实践指南</h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-27T16:00:00+00:00">
+                2018-07-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/07/27/go-code-review-comment/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2018/07/27/go-code-review-comment/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>本篇文章是基于<a href="https://github.com/golang/go/wiki/CodeReviewComments" target="_blank" rel="noopener">链接</a>的精简翻译，作为<a href="https://golang.org/doc/effective_go.html" target="_blank" rel="noopener">Effective Go</a>的补充，主要罗列了一系列golang语言的编程实践规范，对于开发者而言具有很好的参考价值。</p>
+<h4 id="Gofmt"><a href="#Gofmt" class="headerlink" title="Gofmt"></a>Gofmt</h4><p>gofmt是一款golang的代码格式化组件，推荐在保存代码前运行gofmt来自动格式化代码，这样子能让团队项目有近乎一致的代码风格，从而提高代码的可读性。</p>
+<h4 id="Comment-Sentences"><a href="#Comment-Sentences" class="headerlink" title="Comment Sentences"></a>Comment Sentences</h4><p>文档注释代码必须是一条完整的语句，以句号结尾，以被描述的内容（方法名、类型名、变量名、常量名、包名）开头，例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// Request represents a request to run a command.</span><br><span class="line">type Request struct &#123; ...</span><br><span class="line"></span><br><span class="line">// Encode writes the JSON encoding of req to w.</span><br><span class="line">func Encode(w io.Writer, req *Request) &#123; ...</span><br></pre></td></tr></table></figure></p>
+<h4 id="Contexts"><a href="#Contexts" class="headerlink" title="Contexts"></a>Contexts</h4><p>context.Context可以用来携带信息，通常用来传递请求周期变量。如果有需要用到它，要将其变成方法的第一个参数（推荐命名为ctx），而不是将ctx变成变量存储在一个结构体类型中。</p>
+<h4 id="Declaring-Empty-Slices"><a href="#Declaring-Empty-Slices" class="headerlink" title="Declaring Empty Slices"></a>Declaring Empty Slices</h4><p>当定义一个空的切片的时候，通常有两种方式：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// 方式1</span><br><span class="line">var t []string</span><br><span class="line"></span><br><span class="line">// 方式2</span><br><span class="line">t := []string&#123;&#125;</span><br></pre></td></tr></table></figure></p>
+<p>方式1中的t为nil，而方式2中的t则是一个非nil的零切片，在功能上两者是没有区别的（len(t)、cap(t)、append(t, “”)），但是在序列化成json的时候就有区别，方式1的t会为null，方式2的t会为[]，要特别注意这个点。</p>
+<h4 id="Crypto-Rand"><a href="#Crypto-Rand" class="headerlink" title="Crypto Rand"></a>Crypto Rand</h4><p>当需要生成随机数的时候，不要使用包 <code>math/rand</code> ，因为其计算得到的是伪随机数，推荐使用包 <code>crypto/rand</code> ，示例用法：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">import (</span><br><span class="line">    &quot;crypto/rand&quot;</span><br><span class="line">    &quot;fmt&quot;</span><br><span class="line">    &quot;log&quot;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line">func Key() string &#123;</span><br><span class="line">    buf := make([]byte, 16)</span><br><span class="line">    _, err := rand.Read(buf)</span><br><span class="line">    if err != nil &#123;</span><br><span class="line">        log.Fatalf(err) // out of randomness, should never happen</span><br><span class="line">    &#125;</span><br><span class="line">    return fmt.Sprintf(&quot;%x&quot;, buf)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h4 id="Doc-Comments"><a href="#Doc-Comments" class="headerlink" title="Doc Comments"></a>Doc Comments</h4><p>包中所有对外可用的变量、方法、结构体、常量都应该有注释，一些重要的不对外暴露的变量、方法、结构体也要声明注释。</p>
+<h4 id="Don’t-Panic"><a href="#Don’t-Panic" class="headerlink" title="Don’t Panic"></a>Don’t Panic</h4><p>不要使用panic来处理错误，应该使用error返回。</p>
+<h4 id="Error-Strings"><a href="#Error-Strings" class="headerlink" title="Error Strings"></a>Error Strings</h4><p>错误描述不要使用大写字母开头（除非是专有名词或缩写），不要用任何标点符号结尾，这样在记录log的时候可以组成一条完整的语句。</p>
+<h4 id="Goroutine-Lifetimes"><a href="#Goroutine-Lifetimes" class="headerlink" title="Goroutine Lifetimes"></a>Goroutine Lifetimes</h4><p>当大量启用协程的时候，应该尽量让代码保持简单，使得协程的生命周期很清晰。</p>
+<h4 id="Handle-Errors"><a href="#Handle-Errors" class="headerlink" title="Handle Errors"></a>Handle Errors</h4><p>当函数返回error的时候，不要使用_吞掉error，每个error都应该被处理。</p>
+<h4 id="Imports"><a href="#Imports" class="headerlink" title="Imports"></a>Imports</h4><p>当引入的包出现命名有重复时候，优先对本项目的包起别名；引入的包要分组，组之间留一空行，golang的标准包默认要放在开头位置，例如：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">package main</span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">    &quot;fmt&quot;</span><br><span class="line">    &quot;hash/adler32&quot;</span><br><span class="line">    &quot;os&quot;</span><br><span class="line"></span><br><span class="line">    &quot;github.com/foo/bar&quot;</span><br><span class="line">    &quot;rsc.io/goversion/version&quot;</span><br><span class="line">)</span><br></pre></td></tr></table></figure></p>
+<h4 id="In-Band-Errors"><a href="#In-Band-Errors" class="headerlink" title="In-Band Errors"></a>In-Band Errors</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">// (不推荐做法) Lookup returns the value for key or &quot;&quot; if there is no mapping for key.</span><br><span class="line">func Lookup(key string) string</span><br><span class="line"></span><br><span class="line">// (推荐做法) Lookup returns the value for key or ok=false if there is no mapping for key.</span><br><span class="line">func Lookup(key string) (value string, ok bool)</span><br></pre></td></tr></table></figure>
+<h4 id="Initialisms"><a href="#Initialisms" class="headerlink" title="Initialisms"></a>Initialisms</h4><p>对于名词缩写词，命名的时候要使用全部大写或者全部小写，例如”URL”作为命名的一部分的时候，应命名为”urlPony或者URLPony”，而不是”UrlPony”。</p>
+<h4 id="Named-Result-Parameters"><a href="#Named-Result-Parameters" class="headerlink" title="Named Result Parameters"></a>Named Result Parameters</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">// Location returns f&apos;s latitude and longitude.</span><br><span class="line">// Negative values mean south and west, respectively.</span><br><span class="line">func (f *Foo) Location() (lat, long float64, err error)</span><br></pre></td></tr></table></figure>
+<p>适当地给多返回参数命名，可以提高代码的可读性。</p>
+<h4 id="Package-Comments"><a href="#Package-Comments" class="headerlink" title="Package Comments"></a>Package Comments</h4><p>包名的注释通常注释在go文件的首行，注释中间不留空行。如果对”package main”注释，通常使用编程生成的二进制文件的名称开头，例如seedgen二进制文件的注释：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">// Binary seedgen ...</span><br><span class="line">package main</span><br><span class="line"></span><br><span class="line">or</span><br><span class="line"></span><br><span class="line">// Command seedgen ...</span><br><span class="line">package main</span><br><span class="line"></span><br><span class="line">or</span><br><span class="line"></span><br><span class="line">// Program seedgen ...</span><br><span class="line">package main</span><br><span class="line"></span><br><span class="line">or</span><br><span class="line"></span><br><span class="line">// The seedgen command ...</span><br><span class="line">package main</span><br><span class="line"></span><br><span class="line">or</span><br><span class="line"></span><br><span class="line">// The seedgen program ...</span><br><span class="line">package main</span><br><span class="line"></span><br><span class="line">or</span><br><span class="line"></span><br><span class="line">// Seedgen ..</span><br><span class="line">package main</span><br></pre></td></tr></table></figure></p>
+<h4 id="Package-Names"><a href="#Package-Names" class="headerlink" title="Package Names"></a>Package Names</h4><p>对于包内的变量命名，要尽量精简，无需要带包的名称前缀，例如包chubby：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">package chubby</span><br><span class="line"></span><br><span class="line">// (不推荐)</span><br><span class="line">var ChubbyFile *os.File</span><br><span class="line"></span><br><span class="line">// (推荐)</span><br><span class="line">var File *os.File</span><br></pre></td></tr></table></figure></p>
+<p>对于包的命名则要避免使用太泛的名字，例如common、util、api、types、interfaces等。</p>
+<h4 id="Pass-Values"><a href="#Pass-Values" class="headerlink" title="Pass Values"></a>Pass Values</h4><p>当函数内部无需使用到参数的指针类型，同时传入的参数不是一个大结构体的时候，尽量不要使用指针类型参数传递。</p>
+<h4 id="Receiver-Names"><a href="#Receiver-Names" class="headerlink" title="Receiver Names"></a>Receiver Names</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">type UserService struct&#123;&#125;</span><br><span class="line"></span><br><span class="line">// (不推荐) 使用me、this、self作为receiver名称</span><br><span class="line">func (me *UserService) AddUser() &#123;&#125;</span><br><span class="line"></span><br><span class="line">// (推荐) 直接使用结构体的首字母简写</span><br><span class="line">func (u *UserService) AddUser() &#123;&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="Receiver-Types"><a href="#Receiver-Types" class="headerlink" title="Receiver Types"></a>Receiver Types</h4><p>receiver该使用值类型还是指针类型的一些指导原则：<br>(1) 当receiver是map或者func或者chan的时候，使用值类型；<br>(2) 当receiver是slice且方法内部无需reslice的时候，使用值类型；<br>(3) 当方法内部需要改动receiver的内容的时候，使用指针类型；<br>(4) 当receiver是结构体，同时结构体中包含有sync.Mutex等同步变量的时候，使用指针类型，从而避免同步变量被复制而失效的问题；<br>(5) 当receiver是大数组或者大结构体的时候，使用指针类型，可以提高性能；<br>(6) 当然，出现意见分歧的时候，那就使用指针类型。</p>
+
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/golang/" rel="tag"># golang</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/05/01/go-dep/" rel="next" title="dep使用指南">
+                <i class="fa fa-chevron-left"></i> dep使用指南
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2018/12/01/gorm-loc/" rel="prev" title="GORM时区配置">
+                GORM时区配置 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+    </div>
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image"
+                src="/images/avatar.jpg"
+                alt="Teroy" />
+            
+              <p class="site-author-name" itemprop="name">Teroy</p>
+              <p class="site-description motion-element" itemprop="description"></p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/">
+              
+                  <span class="site-state-item-count">15</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                
+                  <span class="site-state-item-count">10</span>
+                  <span class="site-state-item-name">标签</span>
+                
+              </div>
+            
+
+          </nav>
+
+          
+
+          
+            <div class="links-of-author motion-element">
+                
+                  <span class="links-of-author-item">
+                    <a href="https://github.com/teroy" target="_blank" title="GitHub">
+                      
+                        <i class="fa fa-fw fa-github"></i>GitHub</a>
+                  </span>
+                
+                  <span class="links-of-author-item">
+                    <a href="mailto:sher-lock@qq.com" target="_blank" title="邮箱">
+                      
+                        <i class="fa fa-fw fa-envelope"></i>邮箱</a>
+                  </span>
+                
+            </div>
+          
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      <!--noindex-->
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-4"><a class="nav-link" href="#Gofmt"><span class="nav-number">1.</span> <span class="nav-text">Gofmt</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Comment-Sentences"><span class="nav-number">2.</span> <span class="nav-text">Comment Sentences</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Contexts"><span class="nav-number">3.</span> <span class="nav-text">Contexts</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Declaring-Empty-Slices"><span class="nav-number">4.</span> <span class="nav-text">Declaring Empty Slices</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Crypto-Rand"><span class="nav-number">5.</span> <span class="nav-text">Crypto Rand</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Doc-Comments"><span class="nav-number">6.</span> <span class="nav-text">Doc Comments</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Don’t-Panic"><span class="nav-number">7.</span> <span class="nav-text">Don’t Panic</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Error-Strings"><span class="nav-number">8.</span> <span class="nav-text">Error Strings</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Goroutine-Lifetimes"><span class="nav-number">9.</span> <span class="nav-text">Goroutine Lifetimes</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Handle-Errors"><span class="nav-number">10.</span> <span class="nav-text">Handle Errors</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Imports"><span class="nav-number">11.</span> <span class="nav-text">Imports</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#In-Band-Errors"><span class="nav-number">12.</span> <span class="nav-text">In-Band Errors</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Initialisms"><span class="nav-number">13.</span> <span class="nav-text">Initialisms</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Named-Result-Parameters"><span class="nav-number">14.</span> <span class="nav-text">Named Result Parameters</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Package-Comments"><span class="nav-number">15.</span> <span class="nav-text">Package Comments</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Package-Names"><span class="nav-number">16.</span> <span class="nav-text">Package Names</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Pass-Values"><span class="nav-number">17.</span> <span class="nav-text">Pass Values</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Receiver-Names"><span class="nav-number">18.</span> <span class="nav-text">Receiver Names</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Receiver-Types"><span class="nav-number">19.</span> <span class="nav-text">Receiver Types</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Teroy</span>
+
+  
+</div>
+
+
+
+
+
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.4"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.4"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.4"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.4"></script>
+
+
+
+  
+
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+  <script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+  <script src="//unpkg.com/valine/dist/Valine.min.js"></script>
+  
+  <script type="text/javascript">
+    var GUEST = ['nick','mail','link'];
+    var guest = 'nick,mail';
+    guest = guest.split(',').filter(item=>{
+      return GUEST.indexOf(item)>-1;
+    });
+    new Valine({
+        el: '#comments' ,
+        verify: false,
+        notify: true,
+        appId: 'F0GpH8LSNcKesMWFoqMhWGEG-gzGzoHsz',
+        appKey: 'vfXXrc5hslHRDzfgmyGoB8bC',
+        placeholder: 'Leave your comment here~~',
+        avatar:'mm',
+        guest_info:guest,
+        pageSize:'10' || 10,
+    });
+  </script>
+
+
+
+  
+
+
+
+
+
+  
+
+  
+
+  
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

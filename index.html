@@ -227,7 +227,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/28/go-code-review-comment/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/12/01/gorm-loc/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Teroy">
@@ -246,7 +246,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/07/28/go-code-review-comment/" itemprop="url">golang代码实践指南</a></h2>
+                <a class="post-title-link" href="/2018/12/01/gorm-loc/" itemprop="url">GORM时区配置</a></h2>
         
 
         <div class="post-meta">
@@ -258,8 +258,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-28T00:00:00+08:00">
-                2018-07-28
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-12-01T00:00:00+00:00">
+                2018-12-01
               </time>
             
 
@@ -277,8 +277,144 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/07/28/go-code-review-comment/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2018/07/28/go-code-review-comment/" itemprop="commentCount"></span>
+                <a href="/2018/12/01/gorm-loc/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2018/12/01/gorm-loc/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>近期有同事反馈，测试环境的数据库存储的datetime与北京时间有差异，看到这个问题我的第一反应可能是时区配置有问题。首先检查了一下mysql服务器的时区配置，配置的确实是北京时间，所以就排除了mysql服务器的问题，接下来再检查了一下业务服务器的时区配置，发现配置的UTC时间，由此可以初步确定是业务服务器的问题。通常遇到这个问题最快的解决方案是将服务器的时区改为北京时间，然而仔细思考一番，假如真的有服务器时区配置不一致的问题，难道就只能通过事后发现的修复方案，没有预防方案?<br>我们使用golang作为后端语言，数据库操作层面使用了gorm框架，查阅了gorm相关技术文档，发现gorm是支持时区配置的，那么这个gorm时区配置是否真的可以作为一个预防方案？实践出真知，接下来将通过一些样例代码来验证这个问题。</p>
+<h4 id="准备"><a href="#准备" class="headerlink" title="准备"></a>准备</h4><p>(1) 将本地环境的时区调为UTC<br>(2) 使用mysql数据库，建立一张测试表<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE test(</span><br><span class="line">    d datetime NOT NULL</span><br><span class="line">);</span><br></pre></td></tr></table></figure></p>
+<h4 id="样例代码-入库时间使用本地时区"><a href="#样例代码-入库时间使用本地时区" class="headerlink" title="样例代码:入库时间使用本地时区"></a>样例代码:入库时间使用本地时区</h4><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">conStr := <span class="string">"root:123456@tcp(192.168.3.93:33061)/zxd?charset=utf8mb4&amp;parseTime=true&amp;loc=Local"</span></span><br><span class="line">db, err := gorm.Open(<span class="string">"mysql"</span>, conStr)</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatalf(<span class="string">"%v"</span>, err)</span><br><span class="line">&#125;</span><br><span class="line">db.LogMode(<span class="literal">true</span>)</span><br><span class="line">db = db.Exec(<span class="string">"INSERT INTO test (d) VALUES (?)"</span>, time.Now())</span><br><span class="line"><span class="keyword">if</span> db.Error != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatalf(<span class="string">"%v"</span>, db.Error)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>gorm配置的时区为使用本地时区，通过查询数据库表可以观察得到，生成的时间为本地当前时间。</p>
+<h4 id="样例代码-使用配置时区"><a href="#样例代码-使用配置时区" class="headerlink" title="样例代码:使用配置时区"></a>样例代码:使用配置时区</h4><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">conStr := <span class="string">"root:123456@tcp(192.168.3.93:33061)/zxd?charset=utf8mb4&amp;parseTime=true&amp;loc=Asia%2fShanghai"</span></span><br><span class="line">db, err := gorm.Open(<span class="string">"mysql"</span>, conStr)</span><br><span class="line"><span class="keyword">if</span> err != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatalf(<span class="string">"%v"</span>, err)</span><br><span class="line">&#125;</span><br><span class="line">db.LogMode(<span class="literal">true</span>)</span><br><span class="line">db = db.Exec(<span class="string">"INSERT INTO test (d) VALUES (?)"</span>, time.Now())</span><br><span class="line"><span class="keyword">if</span> db.Error != <span class="literal">nil</span> &#123;</span><br><span class="line">    log.Fatalf(<span class="string">"%v"</span>, db.Error)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>注意 <code>loc=Asia%2fShanghai</code>，gorm配置链接字符串要求对Loc做UrlEncode处理，这里配置成固定的北京时间，通过查询数据库可以验证入库的时间正确性。<br>翻看gorm的源码，可以看到，拼接sql的时候，gorm使用配置的时区对time.Time类型的变量做了一次转换，代码如下：<br><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> time.Time:</span><br><span class="line">    paramTypes[i+i] = <span class="keyword">byte</span>(fieldTypeString)</span><br><span class="line">    paramTypes[i+i+<span class="number">1</span>] = <span class="number">0x00</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">var</span> a [<span class="number">64</span>]<span class="keyword">byte</span></span><br><span class="line">    <span class="keyword">var</span> b = a[:<span class="number">0</span>]</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> v.IsZero() &#123;</span><br><span class="line">        b = <span class="built_in">append</span>(b, <span class="string">"0000-00-00"</span>...)</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        b = v.In(mc.cfg.Loc).AppendFormat(b, timeFormat)</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    paramValues = appendLengthEncodedInteger(paramValues,</span><br><span class="line">        <span class="keyword">uint64</span>(<span class="built_in">len</span>(b)),</span><br><span class="line">    )</span><br><span class="line">    paramValues = <span class="built_in">append</span>(paramValues, b...)</span><br></pre></td></tr></table></figure></p>
+<p>这里需要注意一个细节，就是配置的时区只对time.Time类型有效，假如我们使用了time.Now().Format()进行格式化当前时间，则会使用本地时间，因为作为一个sting占位符，gorm并不会做任何处理。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/07/27/go-code-review-comment/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Teroy">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Teroy’s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2018/07/27/go-code-review-comment/" itemprop="url">golang代码实践指南</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-07-27T16:00:00+00:00">
+                2018-07-27
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2018/07/27/go-code-review-comment/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2018/07/27/go-code-review-comment/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -379,7 +515,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/02/go-dep/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2018/05/01/go-dep/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Teroy">
@@ -398,7 +534,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2018/05/02/go-dep/" itemprop="url">dep使用指南</a></h2>
+                <a class="post-title-link" href="/2018/05/01/go-dep/" itemprop="url">dep使用指南</a></h2>
         
 
         <div class="post-meta">
@@ -410,8 +546,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-02T00:00:00+08:00">
-                2018-05-02
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-05-01T16:00:00+00:00">
+                2018-05-01
               </time>
             
 
@@ -429,8 +565,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2018/05/02/go-dep/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2018/05/02/go-dep/" itemprop="commentCount"></span>
+                <a href="/2018/05/01/go-dep/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2018/05/01/go-dep/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -527,7 +663,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/03/php-ZipArchive-extension-issue/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/05/02/php-ZipArchive-extension-issue/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Teroy">
@@ -546,7 +682,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/05/03/php-ZipArchive-extension-issue/" itemprop="url">ZipArchive扩展遇到的问题</a></h2>
+                <a class="post-title-link" href="/2017/05/02/php-ZipArchive-extension-issue/" itemprop="url">ZipArchive扩展遇到的问题</a></h2>
         
 
         <div class="post-meta">
@@ -558,8 +694,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-03T00:00:00+08:00">
-                2017-05-03
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-05-02T16:00:00+00:00">
+                2017-05-02
               </time>
             
 
@@ -577,8 +713,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/05/03/php-ZipArchive-extension-issue/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2017/05/03/php-ZipArchive-extension-issue/" itemprop="commentCount"></span>
+                <a href="/2017/05/02/php-ZipArchive-extension-issue/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2017/05/02/php-ZipArchive-extension-issue/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -661,7 +797,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/04/06/linux-dir/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/04/05/linux-dir/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Teroy">
@@ -680,7 +816,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/04/06/linux-dir/" itemprop="url">linux目录文件介绍</a></h2>
+                <a class="post-title-link" href="/2017/04/05/linux-dir/" itemprop="url">linux目录文件介绍</a></h2>
         
 
         <div class="post-meta">
@@ -692,8 +828,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-04-06T00:00:00+08:00">
-                2017-04-06
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-04-05T16:00:00+00:00">
+                2017-04-05
               </time>
             
 
@@ -711,8 +847,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/04/06/linux-dir/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2017/04/06/linux-dir/" itemprop="commentCount"></span>
+                <a href="/2017/04/05/linux-dir/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2017/04/05/linux-dir/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -790,7 +926,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/03/12/composer/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/03/11/composer/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Teroy">
@@ -809,7 +945,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/03/12/composer/" itemprop="url">composer使用实践</a></h2>
+                <a class="post-title-link" href="/2017/03/11/composer/" itemprop="url">composer使用实践</a></h2>
         
 
         <div class="post-meta">
@@ -821,8 +957,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-12T00:00:00+08:00">
-                2017-03-12
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-03-11T16:00:00+00:00">
+                2017-03-11
               </time>
             
 
@@ -840,8 +976,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/03/12/composer/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2017/03/12/composer/" itemprop="commentCount"></span>
+                <a href="/2017/03/11/composer/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2017/03/11/composer/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -931,7 +1067,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/26/yii-foreach-issue/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/02/25/yii-foreach-issue/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Teroy">
@@ -950,7 +1086,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/02/26/yii-foreach-issue/" itemprop="url">yii框架遇到的数组引用循环问题</a></h2>
+                <a class="post-title-link" href="/2017/02/25/yii-foreach-issue/" itemprop="url">yii框架遇到的数组引用循环问题</a></h2>
         
 
         <div class="post-meta">
@@ -962,8 +1098,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-02-26T00:00:00+08:00">
-                2017-02-26
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-02-25T16:00:00+00:00">
+                2017-02-25
               </time>
             
 
@@ -981,8 +1117,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/02/26/yii-foreach-issue/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2017/02/26/yii-foreach-issue/" itemprop="commentCount"></span>
+                <a href="/2017/02/25/yii-foreach-issue/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2017/02/25/yii-foreach-issue/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1064,7 +1200,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/07/php-env/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2017/01/06/php-env/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Teroy">
@@ -1083,7 +1219,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2017/01/07/php-env/" itemprop="url">php项目根据环境读取配置的方案</a></h2>
+                <a class="post-title-link" href="/2017/01/06/php-env/" itemprop="url">php项目根据环境读取配置的方案</a></h2>
         
 
         <div class="post-meta">
@@ -1095,8 +1231,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-07T00:00:00+08:00">
-                2017-01-07
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2017-01-06T16:00:00+00:00">
+                2017-01-06
               </time>
             
 
@@ -1114,8 +1250,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2017/01/07/php-env/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2017/01/07/php-env/" itemprop="commentCount"></span>
+                <a href="/2017/01/06/php-env/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2017/01/06/php-env/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1202,7 +1338,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/12/18/php7/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/12/17/php7/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Teroy">
@@ -1221,7 +1357,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/12/18/php7/" itemprop="url">php7杂谈</a></h2>
+                <a class="post-title-link" href="/2016/12/17/php7/" itemprop="url">php7杂谈</a></h2>
         
 
         <div class="post-meta">
@@ -1233,8 +1369,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-12-18T00:00:00+08:00">
-                2016-12-18
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-12-17T16:00:00+00:00">
+                2016-12-17
               </time>
             
 
@@ -1252,8 +1388,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2016/12/18/php7/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2016/12/18/php7/" itemprop="commentCount"></span>
+                <a href="/2016/12/17/php7/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2016/12/17/php7/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1348,7 +1484,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/12/16/php-error-reporting/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/12/15/php-error-reporting/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Teroy">
@@ -1367,7 +1503,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2016/12/16/php-error-reporting/" itemprop="url">php关于error_reporting的配置</a></h2>
+                <a class="post-title-link" href="/2016/12/15/php-error-reporting/" itemprop="url">php关于error_reporting的配置</a></h2>
         
 
         <div class="post-meta">
@@ -1379,8 +1515,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-12-16T00:00:00+08:00">
-                2016-12-16
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-12-15T16:00:00+00:00">
+                2016-12-15
               </time>
             
 
@@ -1398,8 +1534,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2016/12/16/php-error-reporting/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2016/12/16/php-error-reporting/" itemprop="commentCount"></span>
+                <a href="/2016/12/15/php-error-reporting/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2016/12/15/php-error-reporting/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -1432,138 +1568,6 @@
             <p>今天将代码上线到测试环境的，突然报错了，但在我本地自测的时候一直是没问题的，真让人感到奇怪，这段出错的代码大概写了如下的逻辑:</p>
 <figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">BaseTest</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">test</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">"test"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Test</span> <span class="keyword">extends</span> <span class="title">BaseTest</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">getName</span><span class="params">()</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">parent</span>::test();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 <p>在测试环境上调用BaseTest::getName()方法的时候，就会报一个Strict standards的错误。这里应该是自己的一个疏忽，在static方法中是不应该用parent的，但是居然在开发环境不报错！Strict standards应该是指严格标准的错误报告，第一反应就是去看本地php.ini的配置，发现自己本地的php.ini配置的error_reporting是E_ALL &amp; ~E_DEPRECATED &amp; ~E_STRICT，原来是这里将严格标准的错误报告给过滤了，结果出现了测试环境的错误。在看一下php.ini的描述，里面提到开发环境应该将error_reporting配置为E_ALL级别，而生产环境配置为E_ALL &amp; ~E_DEPRECATED &amp; ~E_STRICT，自己的开发环境装上php后就默认是去严格标准格式的，这个地方在配置开发环境的时候以后要必须注意了。</p>
-
-          
-        
-      
-    </div>
-    
-    
-    
-
-    
-
-    
-
-    
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </div>
-  
-  
-  
-  </article>
-
-
-    
-      
-
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
-  
-  
-  
-  <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/11/25/https-cert/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="name" content="Teroy">
-      <meta itemprop="description" content="">
-      <meta itemprop="image" content="/images/avatar.jpg">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="Teroy’s Blog">
-    </span>
-
-    
-      <header class="post-header">
-
-        
-        
-          <h2 class="post-title" itemprop="name headline">
-                
-                <a class="post-title-link" href="/2016/11/25/https-cert/" itemprop="url">浏览器如何验证https证书的可信度</a></h2>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            
-              <span class="post-meta-item-icon">
-                <i class="fa fa-calendar-o"></i>
-              </span>
-              
-                <span class="post-meta-item-text">发表于</span>
-              
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-11-25T00:00:00+08:00">
-                2016-11-25
-              </time>
-            
-
-            
-
-            
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                <span class="post-meta-divider">|</span>
-                <span class="post-meta-item-icon">
-                  <i class="fa fa-comment-o"></i>
-                </span>
-                <a href="/2016/11/25/https-cert/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2016/11/25/https-cert/" itemprop="commentCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-          
-
-          
-
-          
-
-          
-
-        </div>
-      </header>
-    
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>部署https站点的时候，服务器通常需要两个东西：https证书和私钥。在浏览器与服务器发起https通讯的时候，服务器会返回部署的https证书给浏览器，那么浏览器是如何确定这个https证书是可以信任的呢？</p>
-<h4 id="关于https证书格式"><a href="#关于https证书格式" class="headerlink" title="关于https证书格式"></a>关于https证书格式</h4><p>https证书是带有站点信息的x509证书，在浏览器中可以导出后缀名为crt证书，携带的信息通常有：唯一序列号、证书发行机构、发行机构公钥、有效时间段、证书签名算法、证书签名等。</p>
-<h4 id="浏览器的检验过程"><a href="#浏览器的检验过程" class="headerlink" title="浏览器的检验过程"></a>浏览器的检验过程</h4><p>一般情况下，浏览器会内置受信任证书发布结构的公钥，所以就可以用这个公钥来校验证书的可信度。首先来看一张图，看一下https证书生成签名的过程：<br><img src="/2016/11/25/https-cert/1.png" alt=""><br>证书机构拥有自己才知道的私钥，在数字签名函数中加入这个私钥，就生成了这个证书的签名。再来看一张浏览器验证签名过程的图：<br><img src="/2016/11/25/https-cert/2.png" alt=""><br>由于采用了非对称加解密算法，浏览器用公钥对签名进行解密就可以得到摘要，在与证书生成的摘要进行对比，如果一样就表示这个证书是该机构签发的，因为假如证书是伪造的，那么伪造方是肯定不知道正确的私钥，这样用公钥解密出来的摘要肯定与证书生成的摘要不一致。</p>
 
           
         
@@ -1653,7 +1657,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-count">15</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -1666,7 +1670,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">标签</span>
                 
               </div>

@@ -227,7 +227,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/04/04/queue/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2016/11/24/https-cert/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Teroy">
@@ -246,7 +246,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2015/04/04/queue/" itemprop="url">.NET源码Queue<T>的实现</a></h2>
+                <a class="post-title-link" href="/2016/11/24/https-cert/" itemprop="url">浏览器如何验证https证书的可信度</a></h2>
         
 
         <div class="post-meta">
@@ -258,8 +258,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-04-04T00:00:00+08:00">
-                2015-04-04
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2016-11-24T16:00:00+00:00">
+                2016-11-24
               </time>
             
 
@@ -277,8 +277,140 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2015/04/04/queue/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2015/04/04/queue/" itemprop="commentCount"></span>
+                <a href="/2016/11/24/https-cert/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2016/11/24/https-cert/" itemprop="commentCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          
+            <p>部署https站点的时候，服务器通常需要两个东西：https证书和私钥。在浏览器与服务器发起https通讯的时候，服务器会返回部署的https证书给浏览器，那么浏览器是如何确定这个https证书是可以信任的呢？</p>
+<h4 id="关于https证书格式"><a href="#关于https证书格式" class="headerlink" title="关于https证书格式"></a>关于https证书格式</h4><p>https证书是带有站点信息的x509证书，在浏览器中可以导出后缀名为crt证书，携带的信息通常有：唯一序列号、证书发行机构、发行机构公钥、有效时间段、证书签名算法、证书签名等。</p>
+<h4 id="浏览器的检验过程"><a href="#浏览器的检验过程" class="headerlink" title="浏览器的检验过程"></a>浏览器的检验过程</h4><p>一般情况下，浏览器会内置受信任证书发布结构的公钥，所以就可以用这个公钥来校验证书的可信度。首先来看一张图，看一下https证书生成签名的过程：<br><img src="/2016/11/25/https-cert/1.png" alt=""><br>证书机构拥有自己才知道的私钥，在数字签名函数中加入这个私钥，就生成了这个证书的签名。再来看一张浏览器验证签名过程的图：<br><img src="/2016/11/25/https-cert/2.png" alt=""><br>由于采用了非对称加解密算法，浏览器用公钥对签名进行解密就可以得到摘要，在与证书生成的摘要进行对比，如果一样就表示这个证书是该机构签发的，因为假如证书是伪造的，那么伪造方是肯定不知道正确的私钥，这样用公钥解密出来的摘要肯定与证书生成的摘要不一致。</p>
+
+          
+        
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+
+    
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+    
+      
+
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/04/03/queue/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Teroy">
+      <meta itemprop="description" content="">
+      <meta itemprop="image" content="/images/avatar.jpg">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Teroy’s Blog">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h2 class="post-title" itemprop="name headline">
+                
+                <a class="post-title-link" href="/2015/04/03/queue/" itemprop="url">.NET源码Queue<T>的实现</a></h2>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">发表于</span>
+              
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-04-03T16:00:00+00:00">
+                2015-04-03
+              </time>
+            
+
+            
+
+            
+          </span>
+
+          
+
+          
+            
+              <span class="post-comments-count">
+                <span class="post-meta-divider">|</span>
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-comment-o"></i>
+                </span>
+                <a href="/2015/04/03/queue/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2015/04/03/queue/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -364,7 +496,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/04/02/stack/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/04/01/stack/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Teroy">
@@ -383,7 +515,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2015/04/02/stack/" itemprop="url">.NET源码Stack<T>的实现</a></h2>
+                <a class="post-title-link" href="/2015/04/01/stack/" itemprop="url">.NET源码Stack<T>的实现</a></h2>
         
 
         <div class="post-meta">
@@ -395,8 +527,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-04-02T00:00:00+08:00">
-                2015-04-02
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-04-01T16:00:00+00:00">
+                2015-04-01
               </time>
             
 
@@ -414,8 +546,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2015/04/02/stack/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2015/04/02/stack/" itemprop="commentCount"></span>
+                <a href="/2015/04/01/stack/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2015/04/01/stack/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -500,7 +632,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/02/13/refactor/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/02/12/refactor/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Teroy">
@@ -519,7 +651,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2015/02/13/refactor/" itemprop="url">阅读《重构》的一些思考</a></h2>
+                <a class="post-title-link" href="/2015/02/12/refactor/" itemprop="url">阅读《重构》的一些思考</a></h2>
         
 
         <div class="post-meta">
@@ -531,8 +663,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-02-13T00:00:00+08:00">
-                2015-02-13
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2015-02-12T16:00:00+00:00">
+                2015-02-12
               </time>
             
 
@@ -550,8 +682,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2015/02/13/refactor/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2015/02/13/refactor/" itemprop="commentCount"></span>
+                <a href="/2015/02/12/refactor/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2015/02/12/refactor/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -652,7 +784,7 @@
   
   
   <div class="post-block">
-    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2014/12/14/covering-index/">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2014/12/13/covering-index/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="name" content="Teroy">
@@ -671,7 +803,7 @@
         
           <h2 class="post-title" itemprop="name headline">
                 
-                <a class="post-title-link" href="/2014/12/14/covering-index/" itemprop="url">SQLServer覆盖索引</a></h2>
+                <a class="post-title-link" href="/2014/12/13/covering-index/" itemprop="url">SQLServer覆盖索引</a></h2>
         
 
         <div class="post-meta">
@@ -683,8 +815,8 @@
               
                 <span class="post-meta-item-text">发表于</span>
               
-              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-12-14T00:00:00+08:00">
-                2014-12-14
+              <time title="创建于" itemprop="dateCreated datePublished" datetime="2014-12-13T16:00:00+00:00">
+                2014-12-13
               </time>
             
 
@@ -702,8 +834,8 @@
                 <span class="post-meta-item-icon">
                   <i class="fa fa-comment-o"></i>
                 </span>
-                <a href="/2014/12/14/covering-index/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count valine-comment-count" data-xid="/2014/12/14/covering-index/" itemprop="commentCount"></span>
+                <a href="/2014/12/13/covering-index/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count valine-comment-count" data-xid="/2014/12/13/covering-index/" itemprop="commentCount"></span>
                 </a>
               </span>
             
@@ -842,7 +974,7 @@
               
                 <a href="/archives/">
               
-                  <span class="site-state-item-count">14</span>
+                  <span class="site-state-item-count">15</span>
                   <span class="site-state-item-name">日志</span>
                 </a>
               </div>
@@ -855,7 +987,7 @@
               
               <div class="site-state-item site-state-tags">
                 
-                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-count">10</span>
                   <span class="site-state-item-name">标签</span>
                 
               </div>
